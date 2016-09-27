@@ -46,7 +46,11 @@ public class AnimationsUtils
     private boolean withFadeAnimation = false;
     private Interpolator interpolator;
 
-    private Animator.AnimatorListener listener;
+    private Animator.AnimatorListener nativeListener;
+    private AnimationFinishedListener customListener;
+    public interface AnimationFinishedListener{
+        void onAnimationEnd();
+    }
 
     public AnimationsUtils(View viewToAnimate, int slidingDirection)
     {
@@ -180,11 +184,14 @@ public class AnimationsUtils
         }
 
         ObjectAnimator anim = ObjectAnimator.ofFloat(viewToAnimate, propertyName+"X", startPos,endPos);
-        if(listener != null)
-            anim.addListener(listener);
+        if(nativeListener != null)
+            anim.addListener(nativeListener);
         if(interpolator != null)
             anim.setInterpolator(interpolator);
+        if(customListener != null)
+            setCustomListener(anim);
         anim.setDuration(animationDuration);
+
 
         if(withFadeAnimation && !isFadeAnimation())
         {
@@ -194,6 +201,24 @@ public class AnimationsUtils
         }
 
         anim.start();
+    }
+
+    private void setCustomListener(ObjectAnimator anim)
+    {
+        anim.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {}
+            @Override
+            public void onAnimationCancel(Animator animator) {}
+            @Override
+            public void onAnimationRepeat(Animator animator) {}
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                customListener.onAnimationEnd();
+            }
+
+        });
     }
 
     private void startScaleYAnimation()
@@ -216,6 +241,13 @@ public class AnimationsUtils
             Log.e(TAG,"Invalid animation type - aborting");
             return false;
         }
+
+        if(nativeListener != null && customListener == null)
+        {
+            Log.e(TAG,"You cannot set both the custom and native listeners - aborting");
+            return false;
+        }
+
         return true;
     }
 
@@ -268,13 +300,17 @@ public class AnimationsUtils
         return this;
     }
 
-    public AnimationsUtils setListener(Animator.AnimatorListener listener) {
-        this.listener = listener;
+    public AnimationsUtils setNativeListener(Animator.AnimatorListener listener) {
+        this.nativeListener = listener;
         return this;
     }
 
+    public AnimationsUtils setListener(AnimationFinishedListener listener) {
+        this.customListener = listener;
+        return this;
+    }
 
-    public static void animateImageViewDrawables(ImageView imageView, Drawable fromDrawable, Drawable toDrawable, boolean withCrossfade,int duration)
+    public static void animateImageViewDrawables(ImageView imageView, Drawable fromDrawable, Drawable toDrawable, boolean withCrossfade, int duration)
     {
         Drawable[] framesAddPerson = {fromDrawable, toDrawable};
         TransitionDrawable transitionDrawableAddPerson = new TransitionDrawable(framesAddPerson);
