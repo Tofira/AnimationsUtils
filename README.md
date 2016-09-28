@@ -3,10 +3,16 @@ Android animations that supports different types of animations.
 
 Sample usage - 
 ```java
-new AnimationsUtils(textView,AnimationsUtils.SCALE_ANIMATION_OUT)
+new AnimationsUtils(viewToAnimate,AnimationsUtils.SLIDING_ANIMATION_IN_DOWN)
         .setAnimationDuration(1000)
-        .setWithFadeAnimation(true)
-        .setInterpolator(new AnticipateInterpolator())
+        .setInterpolator(new OvershootInterpolator())
+        .setInitialDelay(1000)
+        .setListener(new AnimationsUtils.AnimationFinishedListener() {
+            @Override
+            public void onAnimationEnd() {
+                Log.v("TestProject", "Animation ended!");
+            }
+        })
         .startAnimation();
 ```
 
