@@ -82,7 +82,6 @@ public class AnimationsUtils
 
                     if(animationFailedToLoad && initialDelay < 100)
                         startAnimationNow();
-
                 }
             });
         }
@@ -92,6 +91,8 @@ public class AnimationsUtils
 
     private void setProperties(float viewHeight, float viewWidth, float viewX, float viewY)
     {
+        Log.v(TAG,"viewY - " + viewY + ", viewHeight - " + viewHeight + ", plus - " + (viewY + viewHeight));
+
         int screenWidth = getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_WIDTH);
         int screenHeight = getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_WIDTH);
         switch (slidingDirection)
@@ -134,7 +135,7 @@ public class AnimationsUtils
                 propertyName = "Y";
 
                 endPos =  0;
-                startPos = screenHeight - (viewY + viewHeight);
+                startPos = screenHeight;
                 break;
             }
             case SLIDING_ANIMATION_IN_DOWN:
@@ -150,7 +151,7 @@ public class AnimationsUtils
             {
                 propertyName = "Y";
 
-                endPos =  - (viewY + viewHeight);
+                endPos =  -(viewY + viewHeight);
                 startPos =  0;
                 break;
             }
@@ -159,7 +160,7 @@ public class AnimationsUtils
             {
                 propertyName = "Y";
 
-                endPos =  screenHeight - (viewY+ viewHeight);
+                endPos =  screenHeight;
                 startPos =  0;
                 break;
             }
