@@ -21,13 +21,16 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                new AnimationsUtils(textView,AnimationsUtils.SCALE_ANIMATION_OUT)
+                new AnimationsUtils(textView,AnimationsUtils.FADE_ANIMATION_IN)
                         .setAnimationDuration(1000)
-                        .setWithFadeAnimation(true)
                         .setListener(new AnimationsUtils.AnimationFinishedListener() {
                             @Override
                             public void onAnimationEnd() {
                                 Log.v("SampleProject","Animation Finished!!");
+                                new AnimationsUtils(textView,AnimationsUtils.SCALE_ANIMATION_OUT)
+                                        .setAnimationDuration(3000)
+                                        .setWithFadeAnimation(true)
+                                        .startAnimation();
                             }
                         })
                         .setInterpolator(new AnticipateInterpolator())

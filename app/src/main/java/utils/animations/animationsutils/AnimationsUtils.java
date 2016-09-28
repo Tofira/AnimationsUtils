@@ -177,13 +177,15 @@ public class AnimationsUtils
         if(!checkContract()) return;
 
         viewToAnimate.setVisibility(View.VISIBLE);
-
+        String finalPropertyName = propertyName;
         if(isScaleAnimation())
         {
             startScaleYAnimation();
+            finalPropertyName = finalPropertyName + "X";
         }
 
-        ObjectAnimator anim = ObjectAnimator.ofFloat(viewToAnimate, propertyName+"X", startPos,endPos);
+
+        ObjectAnimator anim = ObjectAnimator.ofFloat(viewToAnimate, finalPropertyName, startPos,endPos);
         if(nativeListener != null)
             anim.addListener(nativeListener);
         if(interpolator != null)
@@ -191,7 +193,6 @@ public class AnimationsUtils
         if(customListener != null)
             setCustomListener(anim);
         anim.setDuration(animationDuration);
-
 
         if(withFadeAnimation && !isFadeAnimation())
         {
@@ -206,12 +207,9 @@ public class AnimationsUtils
     private void setCustomListener(ObjectAnimator anim)
     {
         anim.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animator) {}
-            @Override
-            public void onAnimationCancel(Animator animator) {}
-            @Override
-            public void onAnimationRepeat(Animator animator) {}
+            @Override public void onAnimationStart(Animator animator) {}
+            @Override public void onAnimationCancel(Animator animator) {}
+            @Override public void onAnimationRepeat(Animator animator) {}
 
             @Override
             public void onAnimationEnd(Animator animator) {
