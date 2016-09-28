@@ -184,7 +184,6 @@ public class AnimationsUtils
             finalPropertyName = finalPropertyName + "X";
         }
 
-
         ObjectAnimator anim = ObjectAnimator.ofFloat(viewToAnimate, finalPropertyName, startPos,endPos);
         if(nativeListener != null)
             anim.addListener(nativeListener);
@@ -316,8 +315,9 @@ public class AnimationsUtils
         imageView.setImageDrawable(transitionDrawableAddPerson);
         transitionDrawableAddPerson.startTransition(duration);
     }
-    public static void animateImageViewDrawables(ImageView imageView, int fromDrawable, int toDrawable, Context context,boolean withCrossfade, int duration)
+    public static void animateImageViewDrawables(ImageView imageView, int fromDrawable, int toDrawable,boolean withCrossfade, int duration)
     {
+        Context context = imageView.getContext();
         animateImageViewDrawables(
                 imageView,
                 ContextCompat.getDrawable(context, fromDrawable),
