@@ -143,7 +143,7 @@ public class AnimationsUtils
                 propertyName = "Y";
 
                 endPos =  0;
-                startPos = - (viewY + viewHeight);
+                startPos = -screenHeight;
                 break;
             }
 
@@ -221,6 +221,8 @@ public class AnimationsUtils
         else
             startAnimationNow();
     }
+
+
 
     private void startAnimationNow()
     {
