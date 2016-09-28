@@ -6,10 +6,12 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Interpolator;
 import android.widget.ImageView;
@@ -42,9 +44,12 @@ public class AnimationsUtils
     private View viewToAnimate;
     private int slidingDirection = 0;
     private String propertyName;
+    private int initialDelay = -1;
     private float startPos = -1f, endPos = -1f;
     private boolean withFadeAnimation = false;
     private Interpolator interpolator;
+
+    private boolean animationFailedToLoad = false;
 
     private Animator.AnimatorListener nativeListener;
     private AnimationFinishedListener customListener;
@@ -56,20 +61,46 @@ public class AnimationsUtils
     {
         this.viewToAnimate = viewToAnimate;
         this.slidingDirection = slidingDirection;
-
-        setProperties();
-
     }
 
-    private void setProperties()
+    private void init()
     {
+        float viewHeight = viewToAnimate.getHeight();
+        float viewWidth = viewToAnimate.getWidth();
+        float viewX = viewToAnimate.getX();
+        float viewY = viewToAnimate.getY();
+
+        if(viewHeight == 0 && viewWidth == 0 && viewX == 0 && viewY == 0)
+        {
+            viewToAnimate.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    viewToAnimate.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    Log.v(TAG,"viewToAnimate.getX() - " + viewToAnimate.getX() + "viewToAnimate.getY() - " + viewToAnimate.getY());
+
+                    setProperties(viewToAnimate.getHeight(), viewToAnimate.getWidth(), viewToAnimate.getX(), viewToAnimate.getY());
+
+                    if(animationFailedToLoad && initialDelay < 100)
+                        startAnimationNow();
+
+                }
+            });
+        }
+        else
+            setProperties(viewHeight, viewWidth, viewX, viewY);
+    }
+
+    private void setProperties(float viewHeight, float viewWidth, float viewX, float viewY)
+    {
+        int screenWidth = getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_WIDTH);
+        int screenHeight = getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_WIDTH);
         switch (slidingDirection)
         {
             case SLIDING_ANIMATION_OUT_LEFT:
             {
                 propertyName = "X";
 
-                endPos =  -(viewToAnimate.getX() + viewToAnimate.getWidth());
+                endPos =  -(viewX + viewWidth);
                 startPos = 0;
                 break;
             }
@@ -77,7 +108,7 @@ public class AnimationsUtils
             {
                 propertyName = "X";
 
-                endPos = getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_WIDTH) - viewToAnimate.getX();
+                endPos = screenWidth - viewX;
                 startPos = 0;
                 break;
             }
@@ -86,7 +117,7 @@ public class AnimationsUtils
                 propertyName = "X";
 
                 endPos =  0;
-                startPos = getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_WIDTH) - viewToAnimate.getX();
+                startPos = screenWidth - viewX;
                 break;
             }
             case SLIDING_ANIMATION_IN_RIGHT:
@@ -94,7 +125,7 @@ public class AnimationsUtils
                 propertyName = "X";
 
                 endPos =  0;
-                startPos = -(viewToAnimate.getX() + viewToAnimate.getWidth());
+                startPos = -(viewX + viewWidth);
                 break;
             }
 
@@ -103,7 +134,7 @@ public class AnimationsUtils
                 propertyName = "Y";
 
                 endPos =  0;
-                startPos = getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_HEIGHT) - (viewToAnimate.getY() + viewToAnimate.getHeight());
+                startPos = screenHeight - (viewY + viewHeight);
                 break;
             }
             case SLIDING_ANIMATION_IN_DOWN:
@@ -111,7 +142,7 @@ public class AnimationsUtils
                 propertyName = "Y";
 
                 endPos =  0;
-                startPos = - (viewToAnimate.getY() + viewToAnimate.getHeight());
+                startPos = - (viewY + viewHeight);
                 break;
             }
 
@@ -119,7 +150,7 @@ public class AnimationsUtils
             {
                 propertyName = "Y";
 
-                endPos =  - (viewToAnimate.getY() + viewToAnimate.getHeight());
+                endPos =  - (viewY + viewHeight);
                 startPos =  0;
                 break;
             }
@@ -128,7 +159,7 @@ public class AnimationsUtils
             {
                 propertyName = "Y";
 
-                endPos =  getScreenDimen(viewToAnimate.getContext(),GET_SCREEN_HEIGHT) - (viewToAnimate.getY() + viewToAnimate.getHeight());
+                endPos =  screenHeight - (viewY+ viewHeight);
                 startPos =  0;
                 break;
             }
@@ -174,8 +205,27 @@ public class AnimationsUtils
 
     public void startAnimation()
     {
+
+        init();
+
+        if(initialDelay != -1)
+        {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startAnimationNow();
+                }
+            }, initialDelay);
+        }
+        else
+            startAnimationNow();
+    }
+
+    private void startAnimationNow()
+    {
         if(!checkContract()) return;
 
+        animationFailedToLoad = false;
         viewToAnimate.setVisibility(View.VISIBLE);
         String finalPropertyName = propertyName;
         if(isScaleAnimation())
@@ -231,17 +281,20 @@ public class AnimationsUtils
         if(viewToAnimate == null)
         {
             Log.e(TAG,"View to animate is NULL - aborting");
+            animationFailedToLoad = true;
             return false;
         }
         if(startPos == -1 || endPos == -1)
         {
             Log.e(TAG,"Invalid animation type - aborting");
+            animationFailedToLoad = true;
             return false;
         }
 
         if(nativeListener != null && customListener == null)
         {
             Log.e(TAG,"You cannot set both the custom and native listeners - aborting");
+            animationFailedToLoad = true;
             return false;
         }
 
@@ -304,6 +357,11 @@ public class AnimationsUtils
 
     public AnimationsUtils setListener(AnimationFinishedListener listener) {
         this.customListener = listener;
+        return this;
+    }
+
+    public AnimationsUtils setInitialDelay(int initialDelay) {
+        this.initialDelay = initialDelay;
         return this;
     }
 
