@@ -1,5 +1,5 @@
 # AnimationsUtils
-Android animations that supports different types of animations.
+Android animations library that supports different types of animations.
 
 Sample usage - 
 ```java
